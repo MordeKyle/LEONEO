@@ -9,12 +9,12 @@
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_RGBW + NEO_KHZ800);
 
-int speed = 100;
-int shortSpeed = 50;
+const int speed = 100;
+const int shortSpeed = 50;
 int pattern = 0;
-int wipeSpeed = 100;
+const int wipeSpeed = 100;
 int wipeCounter = 0;
-int directionHolder = 0;
+int directionHolder = 5;
 int powerSaveSwitch0 = 0;
 const int left = 1;
 const int right = 2;
@@ -22,12 +22,12 @@ const int scrollFast = 200;
 const int scrollSlow = 300;
 uint32_t red = strip.Color(0,255,0);
 uint32_t green = strip.Color(255,0,0);
-uint32_t blue = strip.Color(0,0,200);
+uint32_t blue = strip.Color(0,0,255);
 uint32_t white = strip.Color(0,0,0,255);
 uint32_t amber = strip.Color(60,255,0);
 
 //SELECT COLORS HERE
-uint32_t colorA = blue;
+uint32_t colorA = white;
 uint32_t colorB = blue;
 
 void setup()
@@ -56,6 +56,10 @@ void loop()
   {
     patrol();
   }
+  else if(directionHolder == 5)
+  {
+    headlightPatrol();
+  }
 }
 
 void emergency()
@@ -76,6 +80,10 @@ void emergency()
   sideBlue();
   sideRed();
   sideBlue();
+  full();
+  full();
+  full();
+  full();
 }
 void leftScroll()
 {
@@ -201,6 +209,75 @@ void sideBlue()
   }
 }
 
+void full()
+{
+  for(int i=0; i<3; i++)
+  {
+    for(int a=0; a<8; a++)
+    {
+      strip.setPixelColor(a, colorA);
+    }
+    for(int b=8; b<16; b++)
+    {
+      strip.setPixelColor(b, colorB);
+    }
+    strip.show();
+    delay(speed);
+    strip.clear();
+    strip.show();
+    delay(shortSpeed);
+  }
+  for(int i=0; i<3; i++)
+  {
+    for(int a=0; a<8; a++)
+    {
+      strip.setPixelColor(a, colorB);
+    }
+    for(int b=8; b<16; b++)
+    {
+      strip.setPixelColor(b, colorA);
+    }
+    strip.show();
+    delay(speed);
+    strip.clear();
+    strip.show();
+    delay(shortSpeed);
+  }
+}
+
+/*void wipe()
+{
+  for(; wipeCounter<8; wipeCounter++)
+  {
+    if(wipeCounter % 2 == 0)
+    {
+      strip.setPixelColor(wipeCounter, red);
+    }
+    else
+    {
+      strip.setPixelColor(wipeCounter, blue);
+    }
+    strip.show();
+    delay(wipeSpeed);
+    strip.clear();
+  }
+  wipeCounter = 7;
+  for(; wipeCounter>=0; wipeCounter--)
+  {
+    if(wipeCounter % 2 == 0)
+    {
+      strip.setPixelColor(wipeCounter, red);
+    }
+    else
+    {
+      strip.setPixelColor(wipeCounter, blue);
+    }
+    strip.show();
+    delay(wipeSpeed);
+    strip.clear();
+  }
+}*/
+
 void patrol()
 {
   if(powerSaveSwitch0 == 0)
@@ -209,6 +286,43 @@ void patrol()
     strip.setPixelColor(1, colorA);
     strip.setPixelColor(15, colorB);
     strip.setPixelColor(14, colorB);
+    strip.show();
+    powerSaveSwitch0 = 1;
+  }
+  else
+  {
+
+  }
+}
+
+void headlight()
+{
+  for(int i=0; i<16; i++)
+  {
+    strip.setPixelColor(i, white);
+  }
+}
+
+void headlightPatrol()
+{
+  if(powerSaveSwitch0 == 0)
+  {
+    strip.setPixelColor(0, colorB);
+    strip.setPixelColor(1, colorB);
+    strip.setPixelColor(2, white);
+    strip.setPixelColor(3, white);
+    strip.setPixelColor(4, white);
+    strip.setPixelColor(5, white);
+    strip.setPixelColor(6, white);
+    strip.setPixelColor(7, white);
+    strip.setPixelColor(8, white);
+    strip.setPixelColor(9, white);
+    strip.setPixelColor(10, white);
+    strip.setPixelColor(11, white);
+    strip.setPixelColor(12, white);
+    strip.setPixelColor(13, white);
+    strip.setPixelColor(14, colorB);
+    strip.setPixelColor(15, colorB);
     strip.show();
     powerSaveSwitch0 = 1;
   }
