@@ -1,4 +1,5 @@
 #include <Adafruit_NeoPixel.h>
+#include <Adafruit_SPIFlash.h>
 #ifdef __AVR__
  #include <avr/power.h>
 #endif
@@ -14,7 +15,7 @@ const int shortSpeed = 50;
 int pattern = 0;
 const int wipeSpeed = 100;
 int wipeCounter = 0;
-int directionHolder = 5;
+int directionHolder = 0;
 int powerSaveSwitch0 = 0;
 const int left = 1;
 const int right = 2;
@@ -27,14 +28,14 @@ uint32_t white = strip.Color(0,0,0,255);
 uint32_t amber = strip.Color(60,255,0);
 
 //SELECT COLORS HERE
-uint32_t colorA = white;
+uint32_t colorA = red;
 uint32_t colorB = blue;
 
 void setup()
 {
   strip.begin();
   strip.show();
-  strip.setBrightness(50);
+  strip.setBrightness(5);
   Serial.begin(9600);
 }
 
