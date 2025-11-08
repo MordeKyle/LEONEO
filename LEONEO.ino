@@ -10,26 +10,46 @@
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_RGBW + NEO_KHZ800);
 
+//buttons
+const int elBtn = 0;
+const int elModBtn = 0;
+const int leftBtn = 0;
+const int hlBtn = 0;
+const int hlModBtn = 0;
+const int rightBtn = 0;
+
+//timers
 const int speed = 100;
 const int shortSpeed = 50;
-int pattern = 0;
 const int wipeSpeed = 100;
-int wipeCounter = 0;
-int directionHolder = 0;
-int powerSaveSwitch0 = 0;
-const int left = 1;
-const int right = 2;
 const int scrollFast = 200;
 const int scrollSlow = 300;
+
+//counters
+int wipeCounter = 0;
+
+int pattern = 0;
+int directionHolder = 4;
+int powerSaveSwitch0 = 0;
+
+//colors
 uint32_t red = strip.Color(0,255,0);
 uint32_t green = strip.Color(255,0,0);
 uint32_t blue = strip.Color(0,0,255);
 uint32_t white = strip.Color(0,0,0,255);
 uint32_t amber = strip.Color(60,255,0);
+uint32_t orange = strip.Color(25,255,0);
+uint32_t purple = strip.Color(0,255,255);
 
 //SELECT COLORS HERE
 uint32_t colorA = red;
 uint32_t colorB = blue;
+
+//LIGHT GROUPS
+//dev
+int groupL[] = {8, 9, 10, 11, 12, 13, 14, 15, -1};
+int groupR[] = {0, 1, 2, 3, 4, 5, 6, 7, -1};
+//end dev
 
 void setup()
 {
@@ -43,7 +63,7 @@ void loop()
 {
   if(directionHolder == 0)
   {
-    emergency();
+    elStandard();
   }
   else if(directionHolder == 1)
   {
@@ -61,30 +81,34 @@ void loop()
   {
     headlightPatrol();
   }
+  else if(directionHolder == 6)
+  {
+    full(shortSpeed);
+  }
 }
 
-void emergency()
+void elStandard()
 {
-  interRed();
-  interBlue();
-  interRed();
-  interBlue();
-  interRed();
-  interBlue();
-  interRed();
-  interBlue();
-  sideRed();
-  sideBlue();
-  sideRed();
-  sideBlue();
-  sideRed();
-  sideBlue();
-  sideRed();
-  sideBlue();
-  full();
-  full();
-  full();
-  full();
+  interA();
+  interB();
+  interA();
+  interB();
+  interA();
+  interB();
+  interA();
+  interB();
+  sideA();
+  sideB();
+  sideA();
+  sideB();
+  sideA();
+  sideB();
+  sideA();
+  sideB();
+  full(speed);
+  full(speed);
+  full(speed);
+  full(speed);
 }
 void leftScroll()
 {
@@ -130,7 +154,7 @@ void rightScroll()
   delay(scrollSlow);
 }
 
-void interRed()
+void interA()
 {
   for(int i=0; i<3; i++)
   {
@@ -138,10 +162,10 @@ void interRed()
     strip.setPixelColor(2, colorA);
     strip.setPixelColor(4, colorA);
     strip.setPixelColor(6, colorA);
-    strip.setPixelColor(9, colorA);
-    strip.setPixelColor(11, colorA);
-    strip.setPixelColor(13, colorA);
-    strip.setPixelColor(15, colorA);
+    strip.setPixelColor(9, colorB);
+    strip.setPixelColor(11, colorB);
+    strip.setPixelColor(13, colorB);
+    strip.setPixelColor(15, colorB);
     strip.show();
     delay(speed);
     strip.clear();
@@ -150,7 +174,7 @@ void interRed()
   }
 }
 
-void interBlue()
+void interB()
 {
   for(int i=0; i<3; i++)
   {
@@ -158,10 +182,10 @@ void interBlue()
     strip.setPixelColor(3, colorB);
     strip.setPixelColor(5, colorB);
     strip.setPixelColor(7, colorB);
-    strip.setPixelColor(8, colorB);
-    strip.setPixelColor(10, colorB);
-    strip.setPixelColor(12, colorB);
-    strip.setPixelColor(14, colorB);
+    strip.setPixelColor(8, colorA);
+    strip.setPixelColor(10, colorA);
+    strip.setPixelColor(12, colorA);
+    strip.setPixelColor(14, colorA);
     strip.show();
     delay(speed);
     strip.clear();
@@ -170,7 +194,7 @@ void interBlue()
   }
 }
 
-void sideRed()
+void sideA()
 {
   for(int i=0; i<3; i++)
   {
@@ -178,10 +202,10 @@ void sideRed()
     strip.setPixelColor(1, colorA);
     strip.setPixelColor(2, colorA);
     strip.setPixelColor(3, colorA);
-    strip.setPixelColor(12, colorA);
-    strip.setPixelColor(13, colorA);
-    strip.setPixelColor(14, colorA);
-    strip.setPixelColor(15, colorA);
+    strip.setPixelColor(12, colorB);
+    strip.setPixelColor(13, colorB);
+    strip.setPixelColor(14, colorB);
+    strip.setPixelColor(15, colorB);
     strip.show();
     delay(speed);
     strip.clear();
@@ -190,7 +214,7 @@ void sideRed()
   }
 }
 
-void sideBlue()
+void sideB()
 {
   for(int i = 0; i < 3; i++)
   {
@@ -198,10 +222,10 @@ void sideBlue()
     strip.setPixelColor(5, colorB);
     strip.setPixelColor(6, colorB);
     strip.setPixelColor(7, colorB);
-    strip.setPixelColor(8, colorB);
-    strip.setPixelColor(9, colorB);
-    strip.setPixelColor(10, colorB);
-    strip.setPixelColor(11, colorB);
+    strip.setPixelColor(8, colorA);
+    strip.setPixelColor(9, colorA);
+    strip.setPixelColor(10, colorA);
+    strip.setPixelColor(11, colorA);
     strip.show();
     delay(speed);
     strip.clear();
@@ -210,7 +234,7 @@ void sideBlue()
   }
 }
 
-void full()
+void full(int fullSpeed)
 {
   for(int i=0; i<3; i++)
   {
@@ -223,7 +247,7 @@ void full()
       strip.setPixelColor(b, colorB);
     }
     strip.show();
-    delay(speed);
+    delay(fullSpeed);
     strip.clear();
     strip.show();
     delay(shortSpeed);
@@ -239,7 +263,7 @@ void full()
       strip.setPixelColor(b, colorA);
     }
     strip.show();
-    delay(speed);
+    delay(fullSpeed);
     strip.clear();
     strip.show();
     delay(shortSpeed);
@@ -283,6 +307,7 @@ void patrol()
 {
   if(powerSaveSwitch0 == 0)
   {
+    strip.setBrightness(10);
     strip.setPixelColor(0, colorA);
     strip.setPixelColor(1, colorA);
     strip.setPixelColor(15, colorB);
