@@ -21,7 +21,7 @@ const int rightBtn = 0;
 //timers
 const int speed = 100;
 const int shortSpeed = 50;
-const int wipeSpeed = 100;
+const int wipeSpeed = 15;
 const int scrollFast = 200;
 const int scrollSlow = 300;
 
@@ -29,17 +29,22 @@ const int scrollSlow = 300;
 int wipeCounter = 0;
 
 int pattern = 0;
-int directionHolder = 4;
+int directionHolder = 0;
 int powerSaveSwitch0 = 0;
+int breatheHolder = 0;
+int breatheDirection = 0;
+int brightness = 50;
 
 //colors
 uint32_t red = strip.Color(0,255,0);
+uint32_t halfRed = strip.Color(0,125,0);
 uint32_t green = strip.Color(255,0,0);
 uint32_t blue = strip.Color(0,0,255);
 uint32_t white = strip.Color(0,0,0,255);
-uint32_t amber = strip.Color(60,255,0);
+uint32_t amber = strip.Color(70,255,0);
 uint32_t orange = strip.Color(25,255,0);
 uint32_t purple = strip.Color(0,255,255);
+uint32_t off = strip.Color(0,0,0);
 
 //SELECT COLORS HERE
 uint32_t colorA = red;
@@ -55,7 +60,7 @@ void setup()
 {
   strip.begin();
   strip.show();
-  strip.setBrightness(5);
+  strip.setBrightness(brightness);
   Serial.begin(9600);
 }
 
@@ -73,17 +78,34 @@ void loop()
   {
     rightScroll();
   }
-  else if(directionHolder == 4)
+  else if(directionHolder == 3)
   {
     patrol();
   }
-  else if(directionHolder == 5)
+  else if(directionHolder == 4)
   {
     headlightPatrol();
   }
+  else if(directionHolder == 5)
+  {
+    full(shortSpeed, 255);
+  }
   else if(directionHolder == 6)
   {
-    full(shortSpeed);
+    blinkerRearLeft();
+  }
+  else if(directionHolder == 7)
+  {
+    blinkerRearRight();
+  }
+  else if(directionHolder == 8)
+  {
+    tailLight();
+    breathe();
+  }
+  else if(directionHolder == 9)
+  {
+    wipe();
   }
 }
 
@@ -97,6 +119,7 @@ void elStandard()
   interB();
   interA();
   interB();
+  wipeWhite();
   sideA();
   sideB();
   sideA();
@@ -105,10 +128,12 @@ void elStandard()
   sideB();
   sideA();
   sideB();
-  full(speed);
-  full(speed);
-  full(speed);
-  full(speed);
+  wipeWhite();
+  full(speed, brightness);
+  full(speed, brightness);
+  full(speed, brightness);
+  full(speed, brightness);
+  wipeWhite();
 }
 void leftScroll()
 {
@@ -234,8 +259,9 @@ void sideB()
   }
 }
 
-void full(int fullSpeed)
+void full(int fullSpeed, int bright)
 {
+  strip.setBrightness(bright);
   for(int i=0; i<3; i++)
   {
     for(int a=0; a<8; a++)
@@ -270,17 +296,19 @@ void full(int fullSpeed)
   }
 }
 
-/*void wipe()
+void wipe()
 {
   for(; wipeCounter<8; wipeCounter++)
   {
     if(wipeCounter % 2 == 0)
     {
       strip.setPixelColor(wipeCounter, red);
+      strip.setPixelColor((wipeCounter+8), red);
     }
     else
     {
       strip.setPixelColor(wipeCounter, blue);
+      strip.setPixelColor((wipeCounter+8), blue);
     }
     strip.show();
     delay(wipeSpeed);
@@ -292,16 +320,57 @@ void full(int fullSpeed)
     if(wipeCounter % 2 == 0)
     {
       strip.setPixelColor(wipeCounter, red);
+      strip.setPixelColor((wipeCounter+8), red);
     }
     else
     {
       strip.setPixelColor(wipeCounter, blue);
+      strip.setPixelColor((wipeCounter+8), blue);
     }
     strip.show();
     delay(wipeSpeed);
     strip.clear();
   }
-}*/
+  wipeCounter = 0;
+}
+
+void wipeWhite()
+{
+    for(; wipeCounter<8; wipeCounter++)
+  {
+    if(wipeCounter % 2 == 0)
+    {
+      strip.setPixelColor(wipeCounter, white);
+      strip.setPixelColor((wipeCounter+8), white);
+    }
+    else
+    {
+      strip.setPixelColor(wipeCounter, white);
+      strip.setPixelColor((wipeCounter+8), white);
+    }
+    strip.show();
+    delay(wipeSpeed);
+    strip.clear();
+  }
+  wipeCounter = 7;
+  for(; wipeCounter>=0; wipeCounter--)
+  {
+    if(wipeCounter % 2 == 0)
+    {
+      strip.setPixelColor(wipeCounter, white);
+      strip.setPixelColor((wipeCounter+8), white);
+    }
+    else
+    {
+      strip.setPixelColor(wipeCounter, white);
+      strip.setPixelColor((wipeCounter+8), white);
+    }
+    strip.show();
+    delay(wipeSpeed);
+    strip.clear();
+  }
+  wipeCounter = 0;
+}
 
 void patrol()
 {
@@ -333,8 +402,8 @@ void headlightPatrol()
 {
   if(powerSaveSwitch0 == 0)
   {
-    strip.setPixelColor(0, colorB);
-    strip.setPixelColor(1, colorB);
+    strip.setPixelColor(0, colorA);
+    strip.setPixelColor(1, colorA);
     strip.setPixelColor(2, white);
     strip.setPixelColor(3, white);
     strip.setPixelColor(4, white);
@@ -355,5 +424,82 @@ void headlightPatrol()
   else
   {
 
+  }
+}
+
+void blinkerRearLeft()
+{
+  strip.clear();
+  strip.setPixelColor(0, halfRed);
+  strip.setPixelColor(1, halfRed);
+  strip.setPixelColor(2, halfRed);
+  strip.setPixelColor(3, halfRed);
+  strip.setPixelColor(4, amber);
+  strip.setPixelColor(5, amber);
+  strip.setPixelColor(6, amber);
+  strip.setPixelColor(7, amber);
+  strip.show();
+  delay(200);
+  strip.setPixelColor(4, off);
+  strip.setPixelColor(5, off);
+  strip.setPixelColor(6, off);
+  strip.setPixelColor(7, off);
+  strip.show();
+  delay(200);
+}
+
+void blinkerRearRight()
+{
+  strip.clear();
+  strip.setPixelColor(4, halfRed);
+  strip.setPixelColor(5, halfRed);
+  strip.setPixelColor(6, halfRed);
+  strip.setPixelColor(7, halfRed);
+  strip.setPixelColor(0, amber);
+  strip.setPixelColor(1, amber);
+  strip.setPixelColor(2, amber);
+  strip.setPixelColor(3, amber);
+  strip.show();
+  delay(200);
+  strip.setPixelColor(0, off);
+  strip.setPixelColor(1, off);
+  strip.setPixelColor(2, off);
+  strip.setPixelColor(3, off);
+  strip.show();
+  delay(200);
+}
+
+void tailLight()
+{
+  for(int i=0; i<8; i++)
+  {
+    strip.setPixelColor(i, red);
+  }
+  strip.show();
+}
+
+void breathe()
+{
+  if(breatheDirection == 0 && breatheHolder < brightness)
+  {
+    strip.setBrightness(breatheHolder);
+    strip.show();
+    delay(10);
+    breatheHolder += 1;
+  }
+  else if(breatheDirection == 0 && breatheHolder >= (brightness - 1))
+  {
+    breatheDirection = 1;
+  }
+  else if(breatheDirection == 1 && breatheHolder >= 1)
+  {
+    strip.setBrightness(breatheHolder);
+    strip.show();
+    delay(10);
+    breatheHolder -= 1;
+  }
+  else
+  {
+    breatheDirection = 0;
   }
 }
