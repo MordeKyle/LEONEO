@@ -3,6 +3,13 @@
 #ifdef __AVR__
  #include <avr/power.h>
 #endif
+#include <AntiDelay.h>
+
+AntiDelay speedDelay(100);
+AntiDelay shortDelay(50);
+AntiDelay wipeSpeedDelay(15);
+AntiDelay scrollFastDelay(200);
+AntiDelay scrollSlowDelay(300);
 
 #define LED_PIN 1
 
@@ -11,12 +18,16 @@
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_RGBW + NEO_KHZ800);
 
 //buttons
-const int elBtn = 0;
-const int elModBtn = 0;
-const int leftBtn = 0;
+const int elBtn = 8;
+const int elModBtn = 7;
+const int leftBtn = 6;
 const int hlBtn = 0;
 const int hlModBtn = 0;
-const int rightBtn = 0;
+const int rightBtn = 5;
+
+//states
+int elBtnState = 0;
+bool elState = false;
 
 //timers
 const int speed = 100;
@@ -29,11 +40,12 @@ const int scrollSlow = 300;
 int wipeCounter = 0;
 
 int pattern = 0;
-int directionHolder = 0;
+int directionHolder = 9;
 int powerSaveSwitch0 = 0;
 int breatheHolder = 0;
 int breatheDirection = 0;
 int brightness = 50;
+bool gotInterrupt = false;
 
 //colors
 uint32_t red = strip.Color(0,255,0);
@@ -62,77 +74,177 @@ void setup()
   strip.show();
   strip.setBrightness(brightness);
   Serial.begin(9600);
+  pinMode(elBtn, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(elBtn), elBtnISR, FALLING);
+  pinMode(elModBtn, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(elModBtn), elModBtnISR, FALLING);
+  pinMode(leftBtn, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(leftBtn), leftBtnISR, FALLING);
+  pinMode(rightBtn, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(leftBtn), rightBtnISR, FALLING);
+
 }
 
 void loop()
 {
-  if(directionHolder == 0)
-  {
-    elStandard();
-  }
-  else if(directionHolder == 1)
-  {
-    leftScroll();
-  }
-  else if(directionHolder == 2)
-  {
-    rightScroll();
-  }
-  else if(directionHolder == 3)
-  {
-    patrol();
-  }
-  else if(directionHolder == 4)
-  {
-    headlightPatrol();
-  }
-  else if(directionHolder == 5)
-  {
-    full(shortSpeed, 255);
-  }
-  else if(directionHolder == 6)
-  {
-    blinkerRearLeft();
-  }
-  else if(directionHolder == 7)
-  {
-    blinkerRearRight();
-  }
-  else if(directionHolder == 8)
-  {
-    tailLight();
-    breathe();
-  }
-  else if(directionHolder == 9)
-  {
-    wipe();
-  }
+  gotInterrupt = false;
+    if(elState)
+    {
+      if(elBtnState == 0)
+      {
+        strip.clear();
+        strip.show();
+        elStandard();
+      }
+      else if(elBtnState == 1)
+      {
+        strip.clear();
+        strip.show();
+        full(shortSpeed, 255);
+      }
+    }
+    else
+    {
+      strip.clear();
+      strip.show();
+    }
 }
 
 void elStandard()
 {
+  strip.setBrightness(brightness);
   interA();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   interB();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   interA();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   interB();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   interA();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   interB();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   interA();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   interB();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   wipeWhite();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   sideA();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   sideB();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   sideA();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   sideB();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   sideA();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   sideB();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   sideA();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   sideB();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   wipeWhite();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   full(speed, brightness);
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   full(speed, brightness);
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   full(speed, brightness);
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   full(speed, brightness);
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
   wipeWhite();
 }
 void leftScroll()
@@ -192,9 +304,23 @@ void interA()
     strip.setPixelColor(13, colorB);
     strip.setPixelColor(15, colorB);
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(speed);
     strip.clear();
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(shortSpeed);
   }
 }
@@ -212,9 +338,23 @@ void interB()
     strip.setPixelColor(12, colorA);
     strip.setPixelColor(14, colorA);
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(speed);
     strip.clear();
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(shortSpeed);
   }
 }
@@ -232,9 +372,23 @@ void sideA()
     strip.setPixelColor(14, colorB);
     strip.setPixelColor(15, colorB);
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(speed);
     strip.clear();
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(shortSpeed);
   }
 }
@@ -252,9 +406,23 @@ void sideB()
     strip.setPixelColor(10, colorA);
     strip.setPixelColor(11, colorA);
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(speed);
     strip.clear();
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(shortSpeed);
   }
 }
@@ -273,9 +441,23 @@ void full(int fullSpeed, int bright)
       strip.setPixelColor(b, colorB);
     }
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(fullSpeed);
     strip.clear();
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(shortSpeed);
   }
   for(int i=0; i<3; i++)
@@ -289,9 +471,23 @@ void full(int fullSpeed, int bright)
       strip.setPixelColor(b, colorA);
     }
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(fullSpeed);
     strip.clear();
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(shortSpeed);
   }
 }
@@ -349,6 +545,13 @@ void wipeWhite()
       strip.setPixelColor((wipeCounter+8), white);
     }
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(wipeSpeed);
     strip.clear();
   }
@@ -366,10 +569,18 @@ void wipeWhite()
       strip.setPixelColor((wipeCounter+8), white);
     }
     strip.show();
+    if(gotInterrupt)
+    {
+      
+      strip.clear();
+      strip.show();
+      break;
+    }
     delay(wipeSpeed);
     strip.clear();
   }
   wipeCounter = 0;
+  strip.show();
 }
 
 void patrol()
@@ -502,4 +713,54 @@ void breathe()
   {
     breatheDirection = 0;
   }
+}
+
+void elBtnISR()
+{
+  static unsigned long lastInterruptTime = 0;
+  unsigned long interruptTime = millis();
+  if(interruptTime - lastInterruptTime > 200)
+  {
+    if(elState)
+    {
+      elState = false;
+      gotInterrupt = true;
+    }
+    else
+    {
+      elState = true;
+      gotInterrupt = true;
+    }
+  }
+lastInterruptTime = interruptTime;
+}
+
+void elModBtnISR()
+{
+  static unsigned long lastInterruptTime = 0;
+  unsigned long interruptTime = millis();
+  if(interruptTime - lastInterruptTime > 200)
+  {
+    if(elBtnState == 0)
+    {
+      elBtnState = 1;
+      gotInterrupt = true;
+    }
+    else
+    {
+      elBtnState = 0;
+      gotInterrupt = true;
+    }
+  }
+  lastInterruptTime = interruptTime;
+}
+
+void leftBtnISR()
+{
+
+}
+
+void rightBtnISR()
+{
+
 }
