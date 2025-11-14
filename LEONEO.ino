@@ -1,4 +1,4 @@
-//Version 0.1.0
+//Version 0.1.1
 // full working alpha with 4 Buttons.
 /* This is seemingly in a fully working state as it sits. A full build
 might be neccessary to go further with the code.
@@ -27,12 +27,12 @@ also need to make a hlBtnState and do the same for headlight function.
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_RGBW + NEO_KHZ800);
 
 //buttons
-const int elBtn = 8;
-const int elModBtn = 7;
-const int leftBtn = 6;
-const int hlBtn = 0;
-const int hlModBtn = 0;
-const int rightBtn = 5;
+const int elBtn = 13;
+const int elModBtn = 12;
+const int leftBtn = 11;
+const int hlBtn = 7;
+const int hlModBtn = 9;
+const int rightBtn = 10;
 
 //states
 int elBtnState = 0;
@@ -41,6 +41,8 @@ bool rightBtnState = false;
 bool leftBtnState = false;
 bool sceneLeftState = false;
 bool sceneRightState = false;
+bool hlBtnState = false;
+bool hlModBtnState = false;
 
 //timers
 const int speed = 100;
@@ -95,38 +97,33 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(leftBtn), leftBtnISR, FALLING);
   pinMode(rightBtn, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(rightBtn), rightBtnISR, FALLING);
+  pinMode(hlBtn, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(hlBtn), hlBtnISR, FALLING);
+  pinMode(hlModBtn, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(hlModBtn), hlModBtnISR, FALLING);
 
 }
 
 void loop()
 {
   gotInterrupt = false;
+  if(hlBtnState)
+  {
     if(elState)
     {
-      if(elBtnState == 0)
+      if(leftBtnState)
       {
-        if(leftBtnState)
-        {
-          elStandardSceneLeft();
-        }
-        else if(rightBtnState)
-        {
-          elStandardSceneRight();
-        }
-        else
-        {
-          elStandard();
-        }
+        elStandardSceneLeft();
       }
-      else if(elBtnState == 1)
+      else if(rightBtnState)
       {
-        if(leftBtnState)
+        elStandardSceneRight();
+      }
+      else
+      {
+        if(elBtnState == 0)
         {
-          elStandardSceneLeft();
-        }
-        else if(rightBtnState)
-        {
-          elStandardSceneRight();
+          elHeadLight();
         }
         else
         {
@@ -136,11 +133,39 @@ void loop()
     }
     else
     {
-      leftBtnState = false;
-      rightBtnState = false;
-      strip.setBrightness(brightness);
       headLight();
     }
+  }
+  else
+  {
+    if(elState)
+    {
+      if(leftBtnState)
+      {
+        elStandardSceneLeft();
+      }
+      else if (rightBtnState)
+      {
+        elStandardSceneRight();
+      }
+      else
+      {
+        if(elBtnState == 0)
+        {
+          elStandard();
+        }
+        else
+        {
+          full(shortSpeed, 255);
+        }
+      }
+    }
+    else
+    {
+      strip.clear();
+      strip.show();
+    }
+  }
 }
 
 void elStandard()
@@ -844,11 +869,93 @@ void blinkerRearRight()
 
 void headLight()
 {
-  for(int i=0; i<8; i++)
+  for(int i=0; i<16; i++)
   {
     strip.setPixelColor(i, white);
   }
   strip.show();
+}
+
+void elHeadLight()
+{
+  strip.setPixelColor(4, white);
+  strip.setPixelColor(5, white);
+  strip.setPixelColor(6, white);
+  strip.setPixelColor(7, white);
+  strip.setPixelColor(8, white);
+  strip.setPixelColor(9, white);
+  strip.setPixelColor(10, white);
+  strip.setPixelColor(11, white);
+  for(int i=0; i<3; i++)
+  {
+    strip.setPixelColor(0, colorA);
+    strip.setPixelColor(1, colorA);
+    strip.setPixelColor(2, colorA);
+    strip.setPixelColor(3, colorA);
+    strip.setPixelColor(12, colorB);
+    strip.setPixelColor(13, colorB);
+    strip.setPixelColor(14, colorB);
+    strip.setPixelColor(15, colorB);
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(speed);
+    strip.setPixelColor(0, off);
+    strip.setPixelColor(1, off);
+    strip.setPixelColor(2, off);
+    strip.setPixelColor(3, off);
+    strip.setPixelColor(12, off);
+    strip.setPixelColor(13, off);
+    strip.setPixelColor(14, off);
+    strip.setPixelColor(15, off);
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+  }
+  for(int i=0; i<3; i++)
+  {
+    strip.setPixelColor(0, colorB);
+    strip.setPixelColor(1, colorB);
+    strip.setPixelColor(2, colorB);
+    strip.setPixelColor(3, colorB);
+    strip.setPixelColor(12, colorA);
+    strip.setPixelColor(13, colorA);
+    strip.setPixelColor(14, colorA);
+    strip.setPixelColor(15, colorA);
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(speed);
+    strip.setPixelColor(0, off);
+    strip.setPixelColor(1, off);
+    strip.setPixelColor(2, off);
+    strip.setPixelColor(3, off);
+    strip.setPixelColor(12, off);
+    strip.setPixelColor(13, off);
+    strip.setPixelColor(14, off);
+    strip.setPixelColor(15, off);
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+  }
 }
 
 void tailLight()
@@ -971,6 +1078,44 @@ void rightBtnISR()
       rightBtnState = true;
       gotInterrupt = true;
       sceneRightState = true;
+    }
+  }
+  lastInterruptTime = interruptTime;
+}
+
+void hlBtnISR()
+{
+  static unsigned long lastInterruptTime = 0;
+  unsigned long interruptTime = millis();
+  if(interruptTime - lastInterruptTime > 300)
+  {
+    if(hlBtnState)
+    {
+      hlBtnState = false;
+      gotInterrupt = true;
+    }
+    else
+    {
+      hlBtnState = true;
+      gotInterrupt = true;
+    }
+  }
+  lastInterruptTime = interruptTime;
+}
+
+void hlModBtnISR()
+{
+  static unsigned long lastInterruptTime = 0;
+  unsigned long interruptTime = millis();
+  if(interruptTime - lastInterruptTime > 300)
+  {
+    if(hlModBtnState)
+    {
+      
+    }
+    else
+    {
+      
     }
   }
   lastInterruptTime = interruptTime;
