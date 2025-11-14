@@ -1,15 +1,24 @@
+//Version 0.1.0
+// full working alpha with 4 Buttons.
+/* This is seemingly in a fully working state as it sits. A full build
+might be neccessary to go further with the code.
+
+I need to try and figure out a way to make the functions more streamlined
+and not as chaotic looking. Maybe grouping could do this, but I'm not sure
+that wont just add complexity for the sake of simply making the code
+easier to look at.
+*/
+
+/*
+!!!TODO!!!
+figure out flash storage and save elBtnState to that.
+also need to make a hlBtnState and do the same for headlight function.
+*/
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_SPIFlash.h>
 #ifdef __AVR__
  #include <avr/power.h>
 #endif
-#include <AntiDelay.h>
-
-AntiDelay speedDelay(100);
-AntiDelay shortDelay(50);
-AntiDelay wipeSpeedDelay(15);
-AntiDelay scrollFastDelay(200);
-AntiDelay scrollSlowDelay(300);
 
 #define LED_PIN 1
 
@@ -28,6 +37,10 @@ const int rightBtn = 5;
 //states
 int elBtnState = 0;
 bool elState = false;
+bool rightBtnState = false;
+bool leftBtnState = false;
+bool sceneLeftState = false;
+bool sceneRightState = false;
 
 //timers
 const int speed = 100;
@@ -81,7 +94,7 @@ void setup()
   pinMode(leftBtn, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(leftBtn), leftBtnISR, FALLING);
   pinMode(rightBtn, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(leftBtn), rightBtnISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(rightBtn), rightBtnISR, FALLING);
 
 }
 
@@ -92,26 +105,48 @@ void loop()
     {
       if(elBtnState == 0)
       {
-        strip.clear();
-        strip.show();
-        elStandard();
+        if(leftBtnState)
+        {
+          elStandardSceneLeft();
+        }
+        else if(rightBtnState)
+        {
+          elStandardSceneRight();
+        }
+        else
+        {
+          elStandard();
+        }
       }
       else if(elBtnState == 1)
       {
-        strip.clear();
-        strip.show();
-        full(shortSpeed, 255);
+        if(leftBtnState)
+        {
+          elStandardSceneLeft();
+        }
+        else if(rightBtnState)
+        {
+          elStandardSceneRight();
+        }
+        else
+        {
+          full(shortSpeed, 255);
+        }
       }
     }
     else
     {
-      strip.clear();
-      strip.show();
+      leftBtnState = false;
+      rightBtnState = false;
+      strip.setBrightness(brightness);
+      headLight();
     }
 }
 
 void elStandard()
 {
+  strip.clear();
+  strip.show();
   strip.setBrightness(brightness);
   interA();
   if(gotInterrupt)
@@ -247,6 +282,141 @@ void elStandard()
   }
   wipeWhite();
 }
+
+void elStandardSceneLeft()
+{
+  strip.setBrightness(255);
+  if(sceneLeftState)
+  {
+    for(int i=0; i<8; i++)
+    {
+      strip.setPixelColor(i, white);
+    }
+    sceneLeftState = false;
+  }
+  for(int i=0; i<3; i++)
+  {
+    for(int a=8; a<16; a++)
+    {
+      strip.setPixelColor(a, colorA);
+    }
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+    for(int a=8; a<16; a++)
+    {
+      strip.setPixelColor(a, off);
+    }
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+  }
+  for(int i=0; i<3; i++)
+  {
+    for(int a=8; a<16; a++)
+    {
+      strip.setPixelColor(a, colorB);
+    }
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+    for(int a=8; a<16; a++)
+    {
+      strip.setPixelColor(a, off);
+    }
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+  }
+}
+
+void elStandardSceneRight()
+{
+  strip.setBrightness(255);
+  if(sceneRightState)
+  {
+    for(int i=8; i<16; i++)
+    {
+      strip.setPixelColor(i, white);
+    }
+    sceneRightState = false;
+  }
+  for(int i=0; i<3; i++)
+  {
+    for(int a=0; a<8; a++)
+    {
+      strip.setPixelColor(a, colorA);
+    }
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+    for(int a=0; a<8; a++)
+    {
+      strip.setPixelColor(a, off);
+    }
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+  }
+  for(int i=0; i<3; i++)
+  {
+    for(int a=0; a<8; a++)
+    {
+      strip.setPixelColor(a, colorB);
+    }
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+    for(int a=0; a<8; a++)
+    {
+      strip.setPixelColor(a, off);
+    }
+    strip.show();
+    if(gotInterrupt)
+    {
+      strip.clear();
+      strip.show();
+      break;
+    }
+    delay(shortSpeed);
+  }
+}
+
 void leftScroll()
 {
   for(int i=0; i<8; i++)
@@ -601,14 +771,6 @@ void patrol()
   }
 }
 
-void headlight()
-{
-  for(int i=0; i<16; i++)
-  {
-    strip.setPixelColor(i, white);
-  }
-}
-
 void headlightPatrol()
 {
   if(powerSaveSwitch0 == 0)
@@ -680,6 +842,15 @@ void blinkerRearRight()
   delay(200);
 }
 
+void headLight()
+{
+  for(int i=0; i<8; i++)
+  {
+    strip.setPixelColor(i, white);
+  }
+  strip.show();
+}
+
 void tailLight()
 {
   for(int i=0; i<8; i++)
@@ -719,7 +890,8 @@ void elBtnISR()
 {
   static unsigned long lastInterruptTime = 0;
   unsigned long interruptTime = millis();
-  if(interruptTime - lastInterruptTime > 200)
+  Serial.println("elBtn");
+  if(interruptTime - lastInterruptTime > 300)
   {
     if(elState)
     {
@@ -739,15 +911,19 @@ void elModBtnISR()
 {
   static unsigned long lastInterruptTime = 0;
   unsigned long interruptTime = millis();
-  if(interruptTime - lastInterruptTime > 200)
+  if(interruptTime - lastInterruptTime > 300)
   {
     if(elBtnState == 0)
     {
+      leftBtnState = false;
+      rightBtnState = false;
       elBtnState = 1;
       gotInterrupt = true;
     }
     else
     {
+      leftBtnState = false;
+      rightBtnState = false;
       elBtnState = 0;
       gotInterrupt = true;
     }
@@ -757,10 +933,45 @@ void elModBtnISR()
 
 void leftBtnISR()
 {
-
+  Serial.println("Left Button Pressed");
+  static unsigned long lastInterruptTime = 0;
+  unsigned long interruptTime = millis();
+  if(interruptTime - lastInterruptTime > 300)
+  {
+    if(leftBtnState)
+    {
+      leftBtnState = false;
+      gotInterrupt = true;
+    }
+    else
+    {
+      rightBtnState = false;
+      leftBtnState = true;
+      gotInterrupt = true;
+      sceneLeftState = true;
+    }
+  }
+  lastInterruptTime = interruptTime;
 }
 
 void rightBtnISR()
 {
-
+  static unsigned long lastInterruptTime = 0;
+  unsigned long interruptTime = millis();
+  if(interruptTime - lastInterruptTime > 300)
+  {
+    if(rightBtnState)
+    {
+      rightBtnState = false;
+      gotInterrupt = true;
+    }
+    else
+    {
+      leftBtnState = false;
+      rightBtnState = true;
+      gotInterrupt = true;
+      sceneRightState = true;
+    }
+  }
+  lastInterruptTime = interruptTime;
 }
