@@ -1,4 +1,4 @@
-//Version 0.1.2
+//Version 0.1.3
 // full working alpha with 4 Buttons.
 /* This is seemingly in a fully working state as it sits. A full build
 might be neccessary to go further with the code.
@@ -55,7 +55,6 @@ int wipeCounter = 0;
 
 int pattern = 0;
 int directionHolder = 9;
-int powerSaveSwitch0 = 0;
 int breatheHolder = 0;
 int breatheDirection = 0;
 int brightness = 50;
@@ -122,6 +121,10 @@ void loop()
       {
         if(elBtnState == 0)
         {
+          headLightPatrol();
+        }
+        else if(elBtnState == 1)
+        {
           elHeadLight();
         }
         else
@@ -158,6 +161,10 @@ void loop()
       else
       {
         if(elBtnState == 0)
+        {
+          patrol();
+        }
+        else if(elBtnState == 1)
         {
           elStandard();
         }
@@ -735,48 +742,49 @@ void wipeWhite()
 
 void patrol()
 {
-  if(powerSaveSwitch0 == 0)
+  strip.setBrightness(10);
+  strip.setPixelColor(0, colorA);
+  strip.setPixelColor(1, colorA);
+  strip.setPixelColor(15, colorB);
+  strip.setPixelColor(14, colorB);
+  for(int i=2; i<14; i++)
   {
-    strip.setBrightness(10);
-    strip.setPixelColor(0, colorA);
-    strip.setPixelColor(1, colorA);
-    strip.setPixelColor(15, colorB);
-    strip.setPixelColor(14, colorB);
-    strip.show();
-    powerSaveSwitch0 = 1;
+    strip.setPixelColor(i, off);
+    if(gotInterrupt)
+    {
+      gotInterrupt = false;
+      return;
+    }
   }
-  else
+  strip.show();
+  if(gotInterrupt)
   {
-
+    gotInterrupt = false;
+    return;
   }
 }
 
-void headlightPatrol()
+void headLightPatrol()
 {
-  if(powerSaveSwitch0 == 0)
+  strip.setBrightness(brightness);
+  strip.setPixelColor(0, colorA);
+  strip.setPixelColor(1, colorA);
+  strip.setPixelColor(14, colorB);
+  strip.setPixelColor(15, colorB);
+  for(int i=2; i<14; i++)
   {
-    strip.setPixelColor(0, colorA);
-    strip.setPixelColor(1, colorA);
-    strip.setPixelColor(2, white);
-    strip.setPixelColor(3, white);
-    strip.setPixelColor(4, white);
-    strip.setPixelColor(5, white);
-    strip.setPixelColor(6, white);
-    strip.setPixelColor(7, white);
-    strip.setPixelColor(8, white);
-    strip.setPixelColor(9, white);
-    strip.setPixelColor(10, white);
-    strip.setPixelColor(11, white);
-    strip.setPixelColor(12, white);
-    strip.setPixelColor(13, white);
-    strip.setPixelColor(14, colorB);
-    strip.setPixelColor(15, colorB);
-    strip.show();
-    powerSaveSwitch0 = 1;
+    strip.setPixelColor(i, white);
+    if(gotInterrupt)
+    {
+      gotInterrupt = false;
+      return;
+    }
   }
-  else
+  strip.show();
+  if(gotInterrupt)
   {
-
+    gotInterrupt = false;
+    return;
   }
 }
 
@@ -982,6 +990,13 @@ void elModBtnISR()
       leftBtnState = false;
       rightBtnState = false;
       elBtnState = 1;
+      gotInterrupt = true;
+    }
+    else if(elBtnState == 1)
+    {
+      leftBtnState = false;
+      rightBtnState = false;
+      elBtnState = 2;
       gotInterrupt = true;
     }
     else
