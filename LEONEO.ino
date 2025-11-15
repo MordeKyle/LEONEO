@@ -1,4 +1,4 @@
-//Version 0.1.1
+//Version 0.1.2
 // full working alpha with 4 Buttons.
 /* This is seemingly in a fully working state as it sits. A full build
 might be neccessary to go further with the code.
@@ -12,7 +12,6 @@ easier to look at.
 /*
 !!!TODO!!!
 figure out flash storage and save elBtnState to that.
-also need to make a hlBtnState and do the same for headlight function.
 */
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_SPIFlash.h>
@@ -42,7 +41,7 @@ bool leftBtnState = false;
 bool sceneLeftState = false;
 bool sceneRightState = false;
 bool hlBtnState = false;
-bool hlModBtnState = false;
+int hlModBtnState = 0;
 
 //timers
 const int speed = 100;
@@ -133,7 +132,15 @@ void loop()
     }
     else
     {
-      headLight();
+      if(hlModBtnState == 0)
+      {
+        headLight();
+      }
+      else
+      {
+        headLight();
+        breathe();
+      }
     }
   }
   else
@@ -168,54 +175,35 @@ void loop()
   }
 }
 
+void interrupt()
+{
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
+}
+
 void elStandard()
 {
   strip.clear();
   strip.show();
   strip.setBrightness(brightness);
-  interA();
-  if(gotInterrupt)
+  for(int i=0; i<4; i++)
   {
-    gotInterrupt = false;
-    return;
+    interA();
+    if(gotInterrupt)
+    {
+      gotInterrupt = false;
+      return;
+    }
+    interB();
+    if(gotInterrupt)
+    {
+      gotInterrupt = false;
+      return;
+    }
   }
-  interB();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  interA();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  interB();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  interA();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  interB();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  interA();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  interB();
   if(gotInterrupt)
   {
     gotInterrupt = false;
@@ -227,49 +215,21 @@ void elStandard()
     gotInterrupt = false;
     return;
   }
-  sideA();
-  if(gotInterrupt)
+  for(int i=0; i<4; i++)
   {
-    gotInterrupt = false;
-    return;
+    sideA();
+    if(gotInterrupt)
+    {
+      gotInterrupt = false;
+      return;
+    }
+    sideB();
+    if(gotInterrupt)
+    {
+      gotInterrupt = false;
+      return;
+    }
   }
-  sideB();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  sideA();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  sideB();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  sideA();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  sideB();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  sideA();
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  sideB();
   if(gotInterrupt)
   {
     gotInterrupt = false;
@@ -281,31 +241,26 @@ void elStandard()
     gotInterrupt = false;
     return;
   }
-  full(speed, brightness);
-  if(gotInterrupt)
+  for(int i=0; i<4; i++)
   {
-    gotInterrupt = false;
-    return;
+    full(speed, brightness);
+    if(gotInterrupt)
+    {
+      gotInterrupt = false;
+      return;
+    }
   }
-  full(speed, brightness);
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  full(speed, brightness);
-  if(gotInterrupt)
-  {
-    gotInterrupt = false;
-    return;
-  }
-  full(speed, brightness);
   if(gotInterrupt)
   {
     gotInterrupt = false;
     return;
   }
   wipeWhite();
+  if(gotInterrupt)
+  {
+    gotInterrupt = false;
+    return;
+  }
 }
 
 void elStandardSceneLeft()
@@ -869,6 +824,7 @@ void blinkerRearRight()
 
 void headLight()
 {
+  strip.setBrightness(brightness);
   for(int i=0; i<16; i++)
   {
     strip.setPixelColor(i, white);
@@ -878,6 +834,7 @@ void headLight()
 
 void elHeadLight()
 {
+  strip.setBrightness(brightness);
   strip.setPixelColor(4, white);
   strip.setPixelColor(5, white);
   strip.setPixelColor(6, white);
@@ -1109,13 +1066,16 @@ void hlModBtnISR()
   unsigned long interruptTime = millis();
   if(interruptTime - lastInterruptTime > 300)
   {
-    if(hlModBtnState)
+    if(hlModBtnState == 0)
     {
-      
+      hlModBtnState = 1;
+      gotInterrupt = true;
     }
     else
     {
-      
+      hlModBtnState = 0;
+      gotInterrupt = true;
+      strip.setBrightness(brightness);
     }
   }
   lastInterruptTime = interruptTime;
